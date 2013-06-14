@@ -6,7 +6,7 @@ module.exports = function(grunt) {
 
   var fs = require('fs');
   var path = require('path');
-  var tinylr = require('tiny-lr');
+  // var tinylr = require('tiny-lr');
   var semver = require('semver');
 
   var RESTART_WATCHERS_DEBOUNCE = 10;
@@ -51,8 +51,8 @@ module.exports = function(grunt) {
     if (firstRun) {
       firstRun = false;
       restartWatchers();
-      if (options.livereload.enabled)
-        runLiveReloadServer();
+      // if (options.livereload.enabled)
+      //   runLiveReloadServer();
       keepThisTaskRunForeverViaHideousHack();
     }
 
@@ -60,15 +60,15 @@ module.exports = function(grunt) {
 
   });
 
-  grunt.registerTask('esteWatchLiveReload', function() {
-    if (!options.livereload.enabled)
-      return;
-    if (changedFilesForLiveReload.length) {
-      changedFilesForLiveReload = grunt.util._.uniq(changedFilesForLiveReload);
-      notifyLiveReloadServer(changedFilesForLiveReload);
-      changedFilesForLiveReload = [];
-    }
-  });
+  // grunt.registerTask('esteWatchLiveReload', function() {
+  //   if (!options.livereload.enabled)
+  //     return;
+  //   if (changedFilesForLiveReload.length) {
+  //     changedFilesForLiveReload = grunt.util._.uniq(changedFilesForLiveReload);
+  //     notifyLiveReloadServer(changedFilesForLiveReload);
+  //     changedFilesForLiveReload = [];
+  //   }
+  // });
 
   // TODO: handle hypothetic situation, when task create dir
   var restartWatchers = function() {
@@ -103,27 +103,27 @@ module.exports = function(grunt) {
   var restartDirsWatchersDebounced = grunt.util._.debounce(
     restartWatchers, RESTART_WATCHERS_DEBOUNCE);
 
-  var runLiveReloadServer = function() {
-    lrServer = tinylr();
-    lrServer.server.removeAllListeners('error');
-    lrServer.server.on('error', function(err) {
-      if (err.code === 'EADDRINUSE') {
-        grunt.fatal('Port ' + options.port + ' is already in use by another process.');
-        grunt.fatal('Open OS process manager and kill all node\'s processes.');
-      } else {
-        grunt.fatal(err);
-      }
-      process.exit(1);
-    });
-    lrServer.listen(options.livereload.port, function(err) {
-      if (err) {
-        grunt.fatal(err);
-        return;
-      }
-      grunt.log.writeln(
-        'LiveReload server started on port: ' + options.livereload.port);
-    });
-  };
+  // var runLiveReloadServer = function() {
+  //   lrServer = tinylr();
+  //   lrServer.server.removeAllListeners('error');
+  //   lrServer.server.on('error', function(err) {
+  //     if (err.code === 'EADDRINUSE') {
+  //       grunt.fatal('Port ' + options.port + ' is already in use by another process.');
+  //       grunt.fatal('Open OS process manager and kill all node\'s processes.');
+  //     } else {
+  //       grunt.fatal(err);
+  //     }
+  //     process.exit(1);
+  //   });
+  //   lrServer.listen(options.livereload.port, function(err) {
+  //     if (err) {
+  //       grunt.fatal(err);
+  //       return;
+  //     }
+  //     grunt.log.writeln(
+  //       'LiveReload server started on port: ' + options.livereload.port);
+  //   });
+  // };
 
   // TODO: fork&fix Grunt
   var keepThisTaskRunForeverViaHideousHack = function() {
@@ -132,7 +132,10 @@ module.exports = function(grunt) {
         var message = typeof e == 'string' ? e : e.message;
         var line = options.beep ? '\x07' : '';
         if (isWarning) {
-          line += ('Warning: ' + message).yellow;
+          line += ('Warnizzng: ' + message).yellow;
+
+          // lrServer.error({});
+
           if (grunt.option('force')) return;
         }
         else {
@@ -230,7 +233,8 @@ module.exports = function(grunt) {
     grunt.log.ok('File changed: ' + filepath);
     var tasks = getFilepathTasks(filepath);
     if (options.livereload.enabled)
-      tasks.push('esteWatchLiveReload');
+      grunt.event.emit('watch.reload', filepath);
+      // tasks.push('esteWatchLiveReload');
     tasks.push('esteWatch');
     done();
     grunt.task.run(tasks);
